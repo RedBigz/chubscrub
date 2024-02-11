@@ -72,6 +72,11 @@ if __name__ == "__main__":
         with open(metapath, "w+", encoding="utf-8") as meta:
             meta.write(f"{name}\nChub.ai Page: {char_frontend % char}")
         
+        tags = chnode["topics"]
+
+        if "ROOT" in tags: tags.remove("ROOT")
+        if "TAVERN" in tags: tags.remove("TAVERN")
+        
         jsonout = json.dumps({
                 "name": name,
                 "description": ps,
@@ -81,8 +86,9 @@ if __name__ == "__main__":
                 "mes_example": ex,
                 "spec": "chara_card_v2",
                 "spec_version": "2.0",
+                "tags": tags,
                 "data": {
-                    "creator_notes": desc
+                    "creator_notes": "Tags: " + (", ".join(tags)) + " " + desc # we have to improvise
                 }
             })
 
@@ -99,7 +105,7 @@ if __name__ == "__main__":
                 fn = rq.json()["file_name"]
                 
             with open(cardpath, "rb") as cardfile:
-                enc = MultipartEncoder({"ch_name": name, "avatar": ("avatar.png", cardfile, "image/png"), "json_data": jsonout, "avatar_url": f"{fn}.png", "description": desc})
+                enc = MultipartEncoder({"ch_name": name, "avatar": ("avatar.png", cardfile, "image/png"), "json_data": jsonout, "avatar_url": f"{fn}.png", "description": desc, "tags": json.dumps(tags)})
                 requests.post("http://127.0.0.1:8000/api/characters/edit", headers={"Content-Type": enc.content_type, "Connection": "keep-alive", "Host": "localhost:8000"}, data=enc)
             
             print("Successfully Uploaded to Tavern")
